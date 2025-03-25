@@ -1,86 +1,184 @@
-#ifndef Restaurant_Ordering_System 
-#define Restaurant_Ordering_System 
-
+#ifndef RESTAURANT_ORDERING_SYSTEM
+#define RESTAURANT_ORDERING_SYSTEM
 
 #include <iostream>
 #include <vector>
 #include <string>
+#include <memory>
+#include <unordered_map>
+#include <functional>
 
-class Dish {
+class Dish
+{
+public:
+    virtual std::string getName() const = 0;
+    virtual double getPrice() const = 0;
+    virtual ~Dish() = default;
+};
+
+class Fish : public Dish
+{
 private:
     std::string m_name;
     double m_price;
+
 public:
-    Dish(std::string name, double price);
-    std::string getName() const;
-    double getPrice() const;
+    Fish(std::string name, double price);
+    double getPrice() const override;
+    std::string getName() const override;
 };
 
-class Menu {
+class Meat : public Dish
+{
 private:
-    std::vector<Dish> m_menu;
+    std::string m_name;
+    double m_price;
 
 public:
-    void addDish(const Dish& dish);
+    Meat(std::string name, double price);
+    double getPrice() const override;
+    std::string getName() const override;
+};
+
+class Chicken : public Dish
+{
+private:
+    std::string m_name;
+    double m_price;
+
+public:
+    Chicken(std::string name, double price);
+    double getPrice() const override;
+    std::string getName() const override;
+};
+
+class Decorator : public Dish
+{
+protected:
+    std::shared_ptr<Dish> dish;
+
+public:
+    explicit Decorator(std::shared_ptr<Dish> dish_);
+};
+
+class Rice : public Decorator
+{
+public:
+    explicit Rice(std::shared_ptr<Dish> dish_);
+    double getPrice() const override;
+    std::string getName() const override;
+};
+
+class Potato : public Decorator
+{
+public:
+    explicit Potato(std::shared_ptr<Dish> dish_);
+    double getPrice() const override;
+    std::string getName() const override;
+};
+
+class Salad : public Decorator
+{
+public:
+    explicit Salad(std::shared_ptr<Dish> dish_);
+    double getPrice() const override;
+    std::string getName() const override;
+};
+
+class Menu
+{
+private:
+    std::vector<std::shared_ptr<Dish>> m_menu;
+    static Menu *sign_;
+
+public:
+    static Menu *getInstance();
+    void addDish(std::shared_ptr<Dish> dish);
     void display() const;
 };
 
-class Order {
+class Order
+{
 private:
-    std::vector<Dish> m_order;  
-public:
-    class iterator {
-        private:
-            std::vector<Dish>::iterator current;
-        public:
-            iterator() : current(nullptr) {}
-            iterator(std::vector<Dish>::iterator ptr) : current(ptr) {}   
-                
-            const  Dish& operator*() const { return *current;}
-            Dish& operator*()  { return *current;}
+    std::vector<std::shared_ptr<Dish>> m_order;
 
-            iterator& operator++() { current++; return *this;}
-            iterator& operator--() { current--; return *this;}
-        
-            iterator operator++(int) { iterator tmp(*this); current++; return tmp; }
-            iterator operator--(int) { iterator tmp(*this);current--; return tmp; }
-        
-            bool operator==(const iterator& other) const{return other.current == current;}
-            bool operator!=(const iterator& other) const{return other.current != current;}
-    };
-        
-    class const_iterator {
-        private:
-        std::vector<Dish>::const_iterator current;
+public:
+
+class iterator {
+    private:
+        std::vector<Dish>::iterator current;
     public:
-        const_iterator() : current(nullptr) {}
-        const_iterator(std::vector<Dish>::const_iterator ptr) : current(ptr) {}   
+        iterator() : current(nullptr) {}
+        iterator(std::vector<Dish>::iterator ptr) : current(ptr) {}   
             
         const  Dish& operator*() const { return *current;}
+        Dish& operator*()  { return *current;}
 
-        const_iterator& operator++() { current++; return *this;}
-        const_iterator& operator--() { current--; return *this;}
+        iterator& operator++() { current++; return *this;}
+        iterator& operator--() { current--; return *this;}
     
-        const_iterator operator++(int) { const_iterator tmp(*this); current++; return tmp; }
-        const_iterator operator--(int) { const_iterator tmp(*this);current--; return tmp; }
+        iterator operator++(int) { iterator tmp(*this); current++; return tmp; }
+        iterator operator--(int) { iterator tmp(*this);current--; return tmp; }
     
-        bool operator==(const const_iterator& other) const{return other.current == current;}
-        bool operator!=(const const_iterator& other) const{return other.current != current;}
-    };
+        bool operator==(const iterator& other) const{return other.current == current;}
+        bool operator!=(const iterator& other) const{return other.current != current;}
+};
+class const_iterator {
+    private:
+    std::vector<Dish>::const_iterator current;
+public:
+    const_iterator() : current(nullptr) {}
+    const_iterator(std::vector<Dish>::const_iterator ptr) : current(ptr) {}   
+        
+    const  Dish& operator*() const { return *current;}
 
+    const_iterator& operator++() { current++; return *this;}
+    const_iterator& operator--() { current--; return *this;}
 
-    void addDish(const Dish& dish);
-    void getTotal() const;
-    
-    iterator begin() noexcept;
-    iterator end() noexcept;
+    const_iterator operator++(int) { const_iterator tmp(*this); current++; return tmp; }
+    const_iterator operator--(int) { const_iterator tmp(*this);current--; return tmp; }
 
-    const_iterator cbegin() noexcept;
-    const_iterator cend() noexcept;
+    bool operator==(const const_iterator& other) const{return other.current == current;}
+    bool operator!=(const const_iterator& other) const{return other.current != current;}
+};
+    void addDish(std::shared_ptr<Dish> dish);
+    double getTotal() const;
+};
+
+class Payment
+{
+public:
+    virtual ~Payment() = default;
+    virtual void pay(double) const = 0;
+};
+
+class CardPayment : public Payment
+{
+private:
+    std::string cardNumber_;
+
+public:
+    CardPayment(const std::string cartNumber);
+    void pay(double amount) const override;
+};
+
+class CashPayment : public Payment
+{
+public:
+    void pay(double amount) const override;
 };
 
 
+class Strategy
+{
+private:
+    std::shared_ptr<Payment> payment;
+
+public:
+    void setStrategy(const std::shared_ptr<Payment> &set);
+    void payStrategy(double amount) const;
+};
 
 #include "impl.cpp"
 
-#endif // Restaurant_Ordering_System 
+#endif // RESTAURANT_ORDERING_SYSTEM

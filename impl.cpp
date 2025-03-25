@@ -1,49 +1,79 @@
 #include "include.hpp"
 
+Menu* Menu::sign_ = nullptr;
 
-Dish::Dish(std::string name,double price) : m_name(name), m_price(price) {}
-std::string Dish::getName() const { 
-    return m_name;
-}
-double Dish::getPrice() const {
-    return m_price;
-}
+Fish::Fish(std::string name, double price) : m_name(std::move(name)), m_price(price) {}
+std::string Fish::getName() const { return m_name; }
+double Fish::getPrice() const { return m_price; }
 
+Meat::Meat(std::string name, double price) : m_name(std::move(name)), m_price(price) {}
+std::string Meat::getName() const { return m_name; }
+double Meat::getPrice() const { return m_price; }
 
-void Menu::addDish(const Dish& dish) {
-    m_menu.push_back(dish);
+Chicken::Chicken(std::string name, double price) : m_name(std::move(name)), m_price(price) {}
+std::string Chicken::getName() const { return m_name; }
+double Chicken::getPrice() const { return m_price; }
+
+Decorator::Decorator(std::shared_ptr<Dish> dish_) : dish(std::move(dish_)) {}
+
+Rice::Rice(std::shared_ptr<Dish> dish_) : Decorator(std::move(dish_)) {}
+std::string Rice::getName() const { return dish->getName() + " with Rice"; }
+double Rice::getPrice() const { return dish->getPrice() + 2.0; }
+
+Potato::Potato(std::shared_ptr<Dish> dish_) : Decorator(std::move(dish_)) {}
+std::string Potato::getName() const { return dish->getName() + " with Potato"; }
+double Potato::getPrice() const { return dish->getPrice() + 5.0; }
+
+Salad::Salad(std::shared_ptr<Dish> dish_) : Decorator(std::move(dish_)) {}
+std::string Salad::getName() const { return dish->getName() + " with Salad"; }
+double Salad::getPrice() const { return dish->getPrice() + 4.0; }
+
+void Menu::addDish(std::shared_ptr<Dish> dish) { m_menu.push_back(std::move(dish)); }
+Menu* Menu::getInstance() {
+    if (!sign_) sign_ = new Menu();
+    return sign_;
 }
 void Menu::display() const {
-    std::cout << "Menu"<< std::endl;
-
-    for(int i = 0; i < m_menu.size(); i++) {
-        std::cout << m_menu[i].getName() << " - " << " $" << m_menu[i].getPrice() << std::endl;
+    std::cout << "Menu" << std::endl;
+    for (const auto& dish : m_menu) {
+        std::cout << dish->getName() << " - $" << dish->getPrice() << std::endl;
     }
 }
 
-
-void Order::addDish(const Dish& dish) {
-    m_order.push_back(dish);
-}
-
-void Order::getTotal() const {
+void Order::addDish(std::shared_ptr<Dish> dish) { m_order.push_back(std::move(dish)); }
+double Order::getTotal() const {
     double sum = 0;
-    for(int i = 0 ; i < m_order.size(); i++) {
-        sum += m_order[i].getPrice();
+    for (const auto& dish : m_order) {
+        sum += dish->getPrice();
     }
-
-    std::cout << "The total price of dishes is " << sum << std::endl;
+    return sum;
 }
 
 
 
-typename Order::iterator Order::begin() noexcept {
-    return iterator(m_order.begin());
+CardPayment::CardPayment(const std::string cardNumber) : cardNumber_(cardNumber) {}
+
+void CardPayment::pay(double amount) const  {
+    std::cout << "The people with " << cardNumber_  << " will pay " << amount << std::endl; 
 }
 
 
+void CashPayment::pay(double amount) const  {
+    std::cout << "The people with Cash will pay " << amount << std::endl; 
+}
 
+void Strategy::payStrategy(double amount) const {
+    if (payment)
+    {
+        payment->pay(amount);
+    }
+    else
+    {
+        std::cout << "Set Payment Strategy" << std::endl;
+    }
+}
 
-typename Order::iterator Order::end() noexcept {
-    return iterator(m_order.end());
+void Strategy::setStrategy(const std::shared_ptr<Payment> &set)
+{
+    payment = set;
 }

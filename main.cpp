@@ -1,26 +1,64 @@
 #include "include.hpp"
 
+std::shared_ptr<Dish> createDish(const std::string& type, const std::string& name, double price) {
+    static const std::unordered_map<std::string, std::function<std::shared_ptr<Dish>(const std::string&, double)>> dishMap = {
+        {"Fish", [](const std::string& name, double price) { return std::make_shared<Fish>(name, price); }},
+        {"Meat", [](const std::string& name, double price) { return std::make_shared<Meat>(name, price); }},
+        {"Chicken", [](const std::string& name, double price) { return std::make_shared<Chicken>(name, price); }}
+    };
 
-int main () {
-    Menu menu;
-    Dish pizza("Pizza", 10);
-    Dish salad("Salad", 5);
-    Dish soda("Soda", 2);
+    auto it = dishMap.find(type);
+    return (it != dishMap.end()) ? it->second(name, price) : nullptr;
+}
 
-    menu.addDish(pizza);
-    menu.addDish(salad);
-    menu.addDish(soda);
+template <typename T>
+std::shared_ptr<Dish> decorateDish(std::shared_ptr<Dish> dish) {
+    return std::make_shared<T>(dish);
+}
 
-    menu.display();
+int main() {
+    Menu* menu = Menu::getInstance();
+    menu->addDish(createDish("Fish", "Salmon", 12.99));
+    menu->addDish(createDish("Meat", "Steak", 15.99));
+    menu->addDish(createDish("Chicken", "Grilled Chicken", 10.99));
+
+    menu->display();
 
     Order order;
-    order.addDish(salad);
-    order.addDish(soda);
-    
-    std::cout << "Order Dishes" << std::endl;
-    for(auto x : order) {
-        std::cout << x.getName() << " $" << x.getPrice() << std::endl;
+    std::shared_ptr<Dish> dish1 = createDish("Fish", "Tuna", 11.99);
+    dish1 = decorateDish<Rice>(dish1);
+    dish1 = decorateDish<Salad>(dish1);
+    order.addDish(dish1);
+
+    std::shared_ptr<Dish> dish2 = createDish("Meat", "Beef", 14.99);
+    dish2 = decorateDish<Potato>(dish2);
+    order.addDish(dish2);
+
+    double price = order.getTotal();
+    std::cout << "Total Order Price: $" << price << std::endl;
+    std::cout << "How Will You Pay?\nCard\nCash\n";
+
+
+    std::string paymentMethod;
+    std::cin >> paymentMethod;
+
+    Strategy strategy;
+
+    if (paymentMethod == "Card") {
+        std::string cardNumber;
+        std::cout << "Enter the CardNumber" << std::endl;
+        std::cin >> cardNumber;
+        
+        strategy.setStrategy(std::make_shared<CardPayment>(cardNumber));
+    } else if (paymentMethod == "Cash") {
+        strategy.setStrategy(std::make_shared<CashPayment>());
+    } else {
+        std::cout << "Invalid payment method selected." << std::endl;
+        return 1;
     }
 
-    order.getTotal();
+    strategy.payStrategy(price);
+    
+
+    return 0;
 }
