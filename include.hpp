@@ -103,46 +103,92 @@ private:
     std::vector<std::shared_ptr<Dish>> m_order;
 
 public:
-
-class iterator {
+    class iterator
+    {
     private:
-        std::vector<Dish>::iterator current;
+        std::vector<std::shared_ptr<Dish>>::iterator current;
+
     public:
         iterator() : current(nullptr) {}
-        iterator(std::vector<Dish>::iterator ptr) : current(ptr) {}   
-            
-        const  Dish& operator*() const { return *current;}
-        Dish& operator*()  { return *current;}
+        iterator(std::vector<std::shared_ptr<Dish>>::iterator ptr) : current(ptr) {}
 
-        iterator& operator++() { current++; return *this;}
-        iterator& operator--() { current--; return *this;}
-    
-        iterator operator++(int) { iterator tmp(*this); current++; return tmp; }
-        iterator operator--(int) { iterator tmp(*this);current--; return tmp; }
-    
-        bool operator==(const iterator& other) const{return other.current == current;}
-        bool operator!=(const iterator& other) const{return other.current != current;}
-};
-class const_iterator {
+        const Dish &operator*() const { return **current; }
+        Dish &operator*() { return **current; }
+
+        iterator &operator++()
+        {
+            ++current;
+            return *this;
+        }
+        iterator &operator--()
+        {
+            --current;
+            return *this;
+        }
+
+        iterator operator++(int)
+        {
+            iterator tmp(*this);
+            ++current;
+            return tmp;
+        }
+        iterator operator--(int)
+        {
+            iterator tmp(*this);
+            --current;
+            return tmp;
+        }
+
+        bool operator==(const iterator &other) const { return other.current == current; }
+        bool operator!=(const iterator &other) const { return other.current != current; }
+    };
+
+    class const_iterator
+    {
     private:
-    std::vector<Dish>::const_iterator current;
-public:
-    const_iterator() : current(nullptr) {}
-    const_iterator(std::vector<Dish>::const_iterator ptr) : current(ptr) {}   
-        
-    const  Dish& operator*() const { return *current;}
+        std::vector<std::shared_ptr<Dish>>::const_iterator current;
 
-    const_iterator& operator++() { current++; return *this;}
-    const_iterator& operator--() { current--; return *this;}
+    public:
+        const_iterator() : current(nullptr) {}
+        const_iterator(std::vector<std::shared_ptr<Dish>>::const_iterator ptr) : current(ptr) {}
 
-    const_iterator operator++(int) { const_iterator tmp(*this); current++; return tmp; }
-    const_iterator operator--(int) { const_iterator tmp(*this);current--; return tmp; }
+        const Dish &operator*() const { return **current; }
 
-    bool operator==(const const_iterator& other) const{return other.current == current;}
-    bool operator!=(const const_iterator& other) const{return other.current != current;}
-};
+        const_iterator &operator++()
+        {
+            ++current;
+            return *this;
+        }
+        const_iterator &operator--()
+        {
+            --current;
+            return *this;
+        }
+
+        const_iterator operator++(int)
+        {
+            const_iterator tmp(*this);
+            ++current;
+            return tmp;
+        }
+        const_iterator operator--(int)
+        {
+            const_iterator tmp(*this);
+            --current;
+            return tmp;
+        }
+
+        bool operator==(const const_iterator &other) const { return other.current == current; }
+        bool operator!=(const const_iterator &other) const { return other.current != current; }
+    };
+
     void addDish(std::shared_ptr<Dish> dish);
     double getTotal() const;
+
+    iterator begin() { return iterator(m_order.begin()); }
+    iterator end() { return iterator(m_order.end()); }
+    const_iterator begin() const { return const_iterator(m_order.begin()); }
+    const_iterator end() const { return const_iterator(m_order.end()); }
 };
 
 class Payment
@@ -167,7 +213,6 @@ class CashPayment : public Payment
 public:
     void pay(double amount) const override;
 };
-
 
 class Strategy
 {

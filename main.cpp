@@ -34,11 +34,16 @@ int main() {
     dish2 = decorateDish<Potato>(dish2);
     order.addDish(dish2);
 
+    std::cout << "Order List" << std::endl;
+    for(const auto& x : order) {
+        std::cout << x.getName() << " " <<  x.getPrice()<< std::endl;
+    }
+
     double price = order.getTotal();
     std::cout << "Total Order Price: $" << price << std::endl;
     std::cout << "How Will You Pay?\nCard\nCash\n";
 
-
+   
     std::string paymentMethod;
     std::cin >> paymentMethod;
 
